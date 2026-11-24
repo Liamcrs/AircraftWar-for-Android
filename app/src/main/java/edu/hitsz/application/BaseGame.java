@@ -21,6 +21,7 @@ public abstract class BaseGame extends SurfaceView implements SurfaceHolder.Call
     private boolean resumed, surfaceReady;
     private Thread gameThread;
     private volatile Viewport viewport;
+    private volatile long renderedFrames;
     private volatile TouchState touch = TouchState.NONE;
     private int viewportVersion, pointerId = -1;
     private long gestureId;
@@ -34,11 +35,12 @@ public abstract class BaseGame extends SurfaceView implements SurfaceHolder.Call
         setContentDescription("飞机大战，按住英雄机拖动，自动发射子弹");
     }
 
-    public final void resumeGame() { resumed = true; startLoopIfReady(); }
-    public final void pauseGame() { resumed = false; clearTouch(); stopLoopAndWait(); }
+    public final void resumeGame() { resumed = true; Log.i(TAG, "Activity resumed"); startLoopIfReady(); }
+    public final void pauseGame() { resumed = false; clearTouch(); stopLoopAndWait(); Log.i(TAG, "Activity paused; worker joined"); }
 
     @Override public final void surfaceCreated(SurfaceHolder holder) {
         surfaceReady = true;
+        Log.i(TAG, "Surface created");
         images.load(getResources());
         startLoopIfReady();
     }
@@ -46,11 +48,13 @@ public abstract class BaseGame extends SurfaceView implements SurfaceHolder.Call
     @Override public final void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         clearTouch();
         viewport = width > 0 && height > 0 ? new Viewport(width, height, ++viewportVersion) : null;
+        Log.i(TAG, "Surface changed: " + width + "x" + height);
         startLoopIfReady();
     }
 
     @Override public final void surfaceDestroyed(SurfaceHolder holder) {
         surfaceReady = false;
+        Log.i(TAG, "Surface destroyed");
         clearTouch();
         stopLoopAndWait();
         viewport = null;
@@ -128,7 +132,10 @@ public abstract class BaseGame extends SurfaceView implements SurfaceHolder.Call
             onDrawWorld(canvas);
             canvas.restoreToCount(saved);
         } finally {
-            if (canvas != null) surfaceHolder.unlockCanvasAndPost(canvas);
+            if (canvas != null) {
+                surfaceHolder.unlockCanvasAndPost(canvas);
+                renderedFrames++;
+            }
         }
     }
 
@@ -177,6 +184,7 @@ public abstract class BaseGame extends SurfaceView implements SurfaceHolder.Call
     @Override public boolean performClick() { super.performClick(); return true; }
     public static int liveLoopCount() { return LIVE_LOOPS.get(); }
     public final Viewport currentViewport() { return viewport; }
+    public final long renderedFrameCount() { return renderedFrames; }
     protected abstract void onTick(TouchState input, Viewport view);
     protected abstract void onDrawWorld(Canvas canvas);
 }

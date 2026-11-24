@@ -67,9 +67,11 @@ def build(test=False):
              '-keypass', 'android', '-alias', 'androiddebugkey', '-keyalg', 'RSA', '-keysize', '2048',
              '-validity', '10000', '-dname', 'CN=Android Debug,O=Android,C=US'])
     apk = output / ('app-debug-androidTest.apk' if test else 'app-debug.apk')
-    run([TOOLS / 'apksigner', 'sign', '--ks', keystore, '--ks-pass', 'pass:android', '--key-pass',
+    # Scope native access to this trusted SDK signing tool, not the user's global Java environment.
+    signer = [JDK / 'bin/java', '--enable-native-access=ALL-UNNAMED', '-jar', TOOLS / 'lib/apksigner.jar']
+    run(signer + ['sign', '--ks', keystore, '--ks-pass', 'pass:android', '--key-pass',
          'pass:android', '--out', apk, output / 'aligned.apk'])
-    run([TOOLS / 'apksigner', 'verify', '--verbose', apk])
+    run(signer + ['verify', '--verbose', apk])
     print('APK: ' + str(apk))
 
 if __name__ == '__main__':

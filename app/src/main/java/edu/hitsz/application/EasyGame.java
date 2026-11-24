@@ -13,6 +13,7 @@ public final class EasyGame extends BaseGame {
     private GameWorld world = new GameWorld();
     private long lastGesture = -1;
     private final Paint text = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint effect = new Paint(Paint.ANTI_ALIAS_FLAG);
     private volatile Snapshot snapshot = new Snapshot(300, 817, 300, 0, 0, 0, 0, false);
     public EasyGame(Context context) { super(context); }
     @Override protected void onTick(TouchState input, Viewport viewport) {
@@ -33,37 +34,61 @@ public final class EasyGame extends BaseGame {
         drawObjects(canvas, world.enemies());
         drawObjects(canvas, world.props());
         drawSprite(canvas, Sprite.HERO, world.hero.getLocationX(), world.hero.getLocationY());
+        // Match the original AbstractGame.paintScoreAndLife(): red text, same anchors and size.
         text.setTextAlign(Paint.Align.LEFT);
-        text.setColor(0xc0101b27);
-        canvas.drawRoundRect(new RectF(12, 12, 245, 118), 12, 12, text);
-        text.setColor(Color.WHITE); text.setTextSize(22); text.setFakeBoldText(true);
-        canvas.drawText("SCORE  " + world.score(), 28, 43, text);
-        canvas.drawText("LIFE     " + world.hero.getHp(), 28, 74, text);
-        text.setColor(0xff7fd6fa); text.setTextSize(16);
-        canvas.drawText("EASY  ·  按住飞机拖动", 28, 103, text);
-        if (world.isGameOver()) {
-            text.setColor(0xbb101b27); canvas.drawRect(0, 0, 600, 900, text);
-            text.setTextAlign(Paint.Align.CENTER); text.setColor(Color.WHITE); text.setTextSize(54);
-            canvas.drawText("GAME OVER", 300, 410, text);
-            text.setColor(0xff7fd6fa); text.setTextSize(28);
-            canvas.drawText("最终得分  " + world.score(), 300, 465, text);
-            text.setColor(0xffeeeeee); text.setTextSize(20);
-            canvas.drawText("点击画面，开始新一局", 300, 515, text);
-        }
+        text.setColor(Color.RED); text.setTextSize(22); text.setFakeBoldText(true);
+        canvas.drawText("SCORE:" + world.score(), 10, 25, text);
+        canvas.drawText("LIFE:" + world.hero.getHp(), 10, 50, text);
+        canvas.drawText("DIFFICULTY:Easy", 10, 75, text);
+        if (world.isGameOver()) drawGameOver(canvas);
     }
 
     private void drawObjects(Canvas canvas, List<? extends AbstractFlyingObject> objects) {
         for (AbstractFlyingObject object : objects) {
             drawSprite(canvas, object.getSprite(), object.getLocationX(), object.getLocationY());
             if (object.isFrozen()) {
-                paint.setColor(0x6680ddff);
-                canvas.drawRect(object.getLocationX() - object.getWidth() / 2f,
-                        object.getLocationY() - object.getHeight() / 2f,
-                        object.getLocationX() + object.getWidth() / 2f,
-                        object.getLocationY() + object.getHeight() / 2f, paint);
-                paint.setColor(Color.WHITE);
+                drawFreezeOverlay(canvas, object.getLocationX() - object.getWidth() / 2f,
+                        object.getLocationY() - object.getHeight() / 2f, object.getWidth(), object.getHeight());
             }
         }
+    }
+
+    /** Colors, line widths and geometry translated from the original JavaFX renderer. */
+    private void drawFreezeOverlay(Canvas canvas, float x, float y, float w, float h) {
+        effect.setStyle(Paint.Style.FILL);
+        effect.setColor(Color.argb(89, 80, 180, 255));
+        canvas.drawRect(x, y, x + w, y + h, effect);
+        effect.setStyle(Paint.Style.STROKE);
+        effect.setColor(Color.argb(230, 140, 210, 255)); effect.setStrokeWidth(2.5f);
+        canvas.drawRoundRect(new RectF(x + 1, y + 1, x + w - 1, y + h - 1), 3, 3, effect);
+        effect.setColor(Color.argb(128, 200, 235, 255)); effect.setStrokeWidth(1);
+        canvas.drawRoundRect(new RectF(x + 3, y + 3, x + w - 3, y + h - 3), 2, 2, effect);
+        float cx = x + w / 2, cy = y + h / 2;
+        effect.setColor(Color.argb(115, 200, 230, 255)); effect.setStrokeWidth(1.2f);
+        canvas.drawLine(cx, y + 4, cx, y + h - 4, effect);
+        canvas.drawLine(x + 4, cy, x + w - 4, cy, effect);
+        canvas.drawLine(x + 4, y + 4, x + w - 4, y + h - 4, effect);
+        canvas.drawLine(x + w - 4, y + 4, x + 4, y + h - 4, effect);
+        effect.setStyle(Paint.Style.FILL); effect.setColor(Color.argb(77, 255, 255, 255));
+        canvas.drawOval(new RectF(cx - 3, cy - 3, cx + 3, cy + 3), effect);
+        effect.setColor(Color.argb(51, 255, 255, 255));
+        canvas.drawOval(new RectF(x + w * .25f, y + h * .3f, x + w * .25f + 3, y + h * .3f + 3), effect);
+        canvas.drawOval(new RectF(x + w * .75f, y + h * .6f, x + w * .75f + 3, y + h * .6f + 3), effect);
+    }
+
+    private void drawGameOver(Canvas canvas) {
+        text.setColor(Color.argb(153, 0, 0, 0));
+        canvas.drawRect(0, 0, 600, 900, text);
+        text.setTextAlign(Paint.Align.CENTER); text.setTextSize(60); text.setFakeBoldText(true);
+        text.setColor(Color.argb(128, 150, 0, 0));
+        canvas.drawText("GAME OVER", 303, 433, text);
+        text.setColor(Color.rgb(255, 30, 30));
+        canvas.drawText("GAME OVER", 300, 430, text);
+        text.setTextSize(20); text.setFakeBoldText(false); text.setColor(Color.rgb(220, 220, 220));
+        // The course's default-Easy entry has no menu yet; retain a truthful mobile action hint.
+        canvas.drawText("点击画面重新开始", 300, 490, text);
+        text.setTextSize(24); text.setFakeBoldText(true); text.setColor(Color.rgb(255, 215, 0));
+        canvas.drawText("最终得分: " + world.score(), 300, 380, text);
     }
 
     /** Immutable observation; device tests cannot modify the live world. */
