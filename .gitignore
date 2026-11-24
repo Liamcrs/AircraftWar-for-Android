@@ -7,3 +7,10 @@ local.properties
 *.iml
 .DS_Store
 artifacts/
+/docs/
+/test/
+/tests/
+/app/src/test/
+/app/src/androidTest/
+/scripts/test_world.py
+/scripts/run_device_checks.py

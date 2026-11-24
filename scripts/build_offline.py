@@ -20,6 +20,8 @@ def run(args):
     subprocess.run([str(x) for x in args], cwd=ROOT, env=ENV, check=True)
 
 def build(test=False):
+    if test and not (ROOT / 'app/src/androidTest/AndroidManifest.xml').is_file():
+        raise SystemExit('Optional local device tests are not present. Omit --test to build the game APK.')
     output = ROOT / 'app/build/offline' / ('androidTest' if test else 'debug')
     if output.exists():
         shutil.rmtree(output)
@@ -76,6 +78,6 @@ def build(test=False):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--test', action='store_true')
+    parser.add_argument('--test', action='store_true', help='Build optional local device tests when available')
     args = parser.parse_args()
     build(args.test)

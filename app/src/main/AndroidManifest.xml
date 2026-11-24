@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <application android:allowBackup="false" android:label="飞机大战 · 实验二"
+    <application android:allowBackup="false" android:label="AircraftWar-for-Android"
         android:theme="@style/AppTheme" android:supportsRtl="true">
         <activity android:name="edu.hitsz.application.MainActivity" android:exported="true">
             <intent-filter>
