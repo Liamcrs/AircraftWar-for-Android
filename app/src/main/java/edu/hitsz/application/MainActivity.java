@@ -3,27 +3,29 @@ package edu.hitsz.application;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.WindowInsets;
-import android.widget.FrameLayout;
+import android.view.View;
+import android.widget.TextView;
+import edu.hitsz.aircraftwar.R;
 
-/** Native Java Activity; the SurfaceView owns the game and rendering worker. */
+/** Native difficulty-selection menu. */
 public final class MainActivity extends Activity {
-    private EasyGame game;
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
-        FrameLayout root = new FrameLayout(this);
-        root.setBackgroundColor(0xff101b27);
+        setContentView(R.layout.activity_main);
+        View root = findViewById(R.id.menu_root);
         root.setOnApplyWindowInsetsListener((view, insets) -> {
             android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout());
             view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
             return WindowInsets.CONSUMED;
         });
-        game = new EasyGame(this);
-        root.addView(game, new FrameLayout.LayoutParams(-1, -1));
-        setContentView(root);
         root.requestApplyInsets();
+
+        TextView selection = findViewById(R.id.selected_mode);
+        findViewById(R.id.easy_button).setOnClickListener(view ->
+                selection.setText(getString(R.string.selected_mode, getString(R.string.easy_mode))));
+        findViewById(R.id.normal_button).setOnClickListener(view ->
+                selection.setText(getString(R.string.selected_mode, getString(R.string.normal_mode))));
+        findViewById(R.id.hard_button).setOnClickListener(view ->
+                selection.setText(getString(R.string.selected_mode, getString(R.string.hard_mode))));
     }
-    @Override public void onResume() { super.onResume(); if (game != null) game.resumeGame(); }
-    @Override public void onPause() { if (game != null) game.pauseGame(); super.onPause(); }
-    @Override public void onDestroy() { if (game != null) game.pauseGame(); super.onDestroy(); }
-    public EasyGame gameView() { return game; }
 }
