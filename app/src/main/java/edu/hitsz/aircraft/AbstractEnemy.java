@@ -11,6 +11,12 @@ public abstract class AbstractEnemy extends AbstractAircraft implements Observer
     public abstract int getScore();
     public abstract List<AbstractProp> generateProps();
     public boolean isKilledByBomb() { return killedByBomb; }
+    /** Called exactly once for a fresh enemy before any effects are applied. */
+    public final void scaleSpawnSpeed(int multiplier) {
+        if (isFrozen()) throw new IllegalStateException("Cannot scale a frozen enemy");
+        speedX *= multiplier;
+        speedY *= multiplier;
+    }
     @Override public void forward() {
         super.forward();
         int half=(getWidth()+1)/2;

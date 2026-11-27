@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application android:allowBackup="false" android:label="AircraftWar-for-Android"
         android:theme="@style/AppTheme" android:supportsRtl="true">
+        <activity android:name="edu.hitsz.application.GameActivity" android:exported="false" />
         <activity android:name="edu.hitsz.application.MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

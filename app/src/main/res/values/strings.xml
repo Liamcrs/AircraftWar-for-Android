@@ -6,4 +6,8 @@
     <string name="normal_mode">普通模式</string>
     <string name="hard_mode">困难模式</string>
     <string name="selected_mode">已选择：%1$s</string>
+    <string name="game_over">游戏结束</string>
+    <string name="result_score">最终得分：%1$d</string>
+    <string name="play_again">重新开始</string>
+    <string name="return_menu">返回菜单</string>
 </resources>

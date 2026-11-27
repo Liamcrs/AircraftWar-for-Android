@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public abstract class BaseGame extends SurfaceView implements SurfaceHolder.Callback, Runnable {
     private static final String TAG = "AircraftGame";
     private static final AtomicInteger LIVE_LOOPS = new AtomicInteger();
-    protected final ImageManager images = new ImageManager();
+    protected final ImageManager images;
     protected final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
     private final SurfaceHolder surfaceHolder;
     private volatile boolean running;
@@ -27,8 +27,9 @@ public abstract class BaseGame extends SurfaceView implements SurfaceHolder.Call
     private long gestureId;
     private float downX, downY;
 
-    protected BaseGame(Context context) {
+    protected BaseGame(Context context, int backgroundId) {
         super(context);
+        images = new ImageManager(backgroundId);
         surfaceHolder = getHolder();
         surfaceHolder.addCallback(this);
         setFocusable(true);

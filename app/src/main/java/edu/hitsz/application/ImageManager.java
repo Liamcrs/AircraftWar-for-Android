@@ -11,6 +11,9 @@ import java.util.Map;
 public final class ImageManager {
     private final Map<Sprite, Bitmap> images = new EnumMap<>(Sprite.class);
     private Bitmap background;
+    private final int backgroundId;
+
+    public ImageManager(int backgroundId) { this.backgroundId = backgroundId; }
 
     public void load(Resources resources) {
         if (background != null) return;
@@ -27,7 +30,7 @@ public final class ImageManager {
         put(resources, Sprite.BULLET, R.drawable.prop_bullet);
         put(resources, Sprite.BULLET_PLUS, R.drawable.prop_bullet_plus);
         put(resources, Sprite.FREEZE, R.drawable.prop_freeze);
-        background = decode(resources, R.drawable.bg_easy);
+        background = decode(resources, backgroundId);
     }
 
     private void put(Resources resources, Sprite sprite, int id) {

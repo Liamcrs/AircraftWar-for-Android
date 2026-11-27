@@ -11,21 +11,34 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-/** Android-free port of AbstractGame's Easy mode. Only the game thread mutates it. */
+/** Android-free rules for all three modes. Only the game thread mutates it. */
 public final class GameWorld {
     public final HeroAircraft hero = new HeroAircraft();
     private final List<AbstractEnemy> enemies = new ArrayList<>();
     private final List<BaseBullet> heroBullets = new ArrayList<>(), enemyBullets = new ArrayList<>();
     private final List<AbstractProp> props = new ArrayList<>();
     private final Random random;
+    private final Difficulty difficulty;
+    private int scoreSinceLastBoss, bossSpawnCount;
+    private BossEnemy boss;
     private int spawnCounter, score, ticks, backgroundOffset;
     private boolean gameOver;
     private long dragGesture = -1;
     private boolean dragging;
     private float dragOffsetX, dragOffsetY;
 
-    public GameWorld() { this(new Random()); }
-    public GameWorld(Random random) { this.random = random; }
+    public GameWorld() { this(Difficulty.EASY); }
+    public GameWorld(Random random) { this(Difficulty.EASY, random); }
+    public GameWorld(Difficulty difficulty) { this(difficulty, new Random()); }
+    public GameWorld(Difficulty difficulty, Random random) {
+        this.difficulty = difficulty == null ? Difficulty.EASY : difficulty;
+        this.random = random;
+        hero.shootCycle = this.difficulty.heroShootTicks;
+    }
+    public Difficulty difficulty() { return difficulty; }
+    public int difficultyTier() { return difficulty.tier(ticks); }
+    public boolean isBossActive() { return boss != null && !boss.notValid(); }
+    public BossEnemy activeBoss() { return isBossActive() ? boss : null; }
     public int score() { return score; }
     public int ticks() { return ticks; }
     public int backgroundOffset() { return backgroundOffset; }
@@ -37,21 +50,37 @@ public final class GameWorld {
 
     public void tick(TouchState input, Viewport viewport) {
         if (gameOver) return;
+        int tier = difficultyTier();
+        hero.shootCycle = difficulty.heroShootTicks(tier);
         applyTouch(input, viewport);
         hero.tickEffects();
         for (AbstractEnemy enemy : enemies) enemy.tickEffects();
         for (BaseBullet bullet : enemyBullets) bullet.tickEffects();
-        if (++spawnCounter >= 20) {
+        if (++spawnCounter >= difficulty.spawnTicks(tier)) {
             spawnCounter = 0;
-            if (enemies.size() < 5) enemies.add(createEnemy());
+            if (enemies.size() < difficulty.enemyLimit) {
+                if (difficulty.bossThreshold > 0 && !isBossActive()
+                        && scoreSinceLastBoss >= difficulty.bossThreshold) {
+                    int hp = 3000 + (difficulty == Difficulty.HARD ? bossSpawnCount * 300 : 0);
+                    boss = (BossEnemy) new BossFactory(hp).createEnemy();
+                    placeEnemy(boss);
+                    enemies.add(boss);
+                    bossSpawnCount++;
+                    scoreSinceLastBoss = 0;
+                } else enemies.add(createEnemy());
+            }
         }
         heroBullets.addAll(hero.executeShoot());
-        for (AbstractEnemy enemy : enemies) enemyBullets.addAll(enemy.executeShoot());
+        for (AbstractEnemy enemy : enemies) {
+            enemy.shootCycle = difficulty.enemyShootTicks(tier);
+            enemyBullets.addAll(enemy.executeShoot());
+        }
         for (BaseBullet bullet : heroBullets) bullet.forward();
         for (BaseBullet bullet : enemyBullets) bullet.forward();
         for (AbstractEnemy enemy : enemies) enemy.forward();
         for (AbstractProp prop : props) prop.forward();
         resolveCollisions();
+        if (boss != null && boss.notValid()) boss = null;
         enemies.removeIf(AbstractFlyingObject::notValid);
         heroBullets.removeIf(AbstractFlyingObject::notValid);
         enemyBullets.removeIf(AbstractFlyingObject::notValid);
@@ -63,14 +92,27 @@ public final class GameWorld {
 
     private AbstractEnemy createEnemy() {
         double roll = random.nextDouble();
-        EnemyFactory factory = roll < .7 ? new MobFactory() : roll < .9 ? new EliteFactory()
-                : roll < .95 ? new ElitePlusFactory() : new EliteProFactory();
+        EnemyFactory factory = roll < difficulty.mobCutoff ? new MobFactory()
+                : roll < difficulty.eliteCutoff ? new EliteFactory()
+                : roll < difficulty.elitePlusCutoff ? new ElitePlusFactory() : new EliteProFactory();
         AbstractEnemy enemy = factory.createEnemy();
+        enemy.scaleSpawnSpeed(1 + difficultyTier());
+        placeEnemy(enemy);
+        return enemy;
+    }
+
+    private void placeEnemy(AbstractEnemy enemy) {
         // Center stays inside sprite-aware bounds; spawn randomness can be supplied by tests.
         int half = (enemy.getWidth() + 1) / 2;
         enemy.setLocation(half + random.nextInt(GameConfig.WINDOW_WIDTH - 2 * half + 1),
                 random.nextInt((int) (GameConfig.WINDOW_HEIGHT * .05) + 1));
-        return enemy;
+    }
+
+    private void awardKill(AbstractEnemy enemy) {
+        score += enemy.getScore();
+        // Points earned while a live boss is present do not advance the next threshold.
+        // Killing the boss itself counts toward the next interval, as in JavaFX.
+        if (!isBossActive()) scoreSinceLastBoss += enemy.getScore();
     }
 
     private void applyTouch(TouchState input, Viewport view) {
@@ -105,7 +147,7 @@ public final class GameWorld {
             for (AbstractEnemy enemy : enemies) {
                 if (!enemy.notValid() && enemy.crash(bullet)) {
                     enemy.decreaseHp(bullet.getPower()); bullet.vanish();
-                    if (enemy.notValid()) { score += enemy.getScore(); props.addAll(enemy.generateProps()); }
+                    if (enemy.notValid()) { awardKill(enemy); props.addAll(enemy.generateProps()); }
                     break; // A normal bullet can hit only one target.
                 }
             }
@@ -124,7 +166,7 @@ public final class GameWorld {
                 List<AbstractEnemy> alive = new ArrayList<>();
                 for (AbstractEnemy enemy : enemies) if (!enemy.notValid()) alive.add(enemy);
                 prop.effect(hero, enemyBullets, enemies);
-                for (AbstractEnemy enemy : alive) if (enemy.notValid()) score += enemy.getScore();
+                for (AbstractEnemy enemy : alive) if (enemy.notValid()) awardKill(enemy);
             } else prop.effect(hero, enemyBullets, enemies);
             prop.vanish();
         }

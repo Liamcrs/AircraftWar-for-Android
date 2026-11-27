@@ -1,14 +1,15 @@
 package edu.hitsz.application;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.WindowInsets;
 import android.view.View;
-import android.widget.TextView;
 import edu.hitsz.aircraftwar.R;
 
 /** Native difficulty-selection menu. */
 public final class MainActivity extends Activity {
+    private boolean launching;
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         setContentView(R.layout.activity_main);
@@ -20,12 +21,17 @@ public final class MainActivity extends Activity {
         });
         root.requestApplyInsets();
 
-        TextView selection = findViewById(R.id.selected_mode);
-        findViewById(R.id.easy_button).setOnClickListener(view ->
-                selection.setText(getString(R.string.selected_mode, getString(R.string.easy_mode))));
-        findViewById(R.id.normal_button).setOnClickListener(view ->
-                selection.setText(getString(R.string.selected_mode, getString(R.string.normal_mode))));
-        findViewById(R.id.hard_button).setOnClickListener(view ->
-                selection.setText(getString(R.string.selected_mode, getString(R.string.hard_mode))));
+        findViewById(R.id.easy_button).setOnClickListener(view -> launch(Difficulty.EASY));
+        findViewById(R.id.normal_button).setOnClickListener(view -> launch(Difficulty.NORMAL));
+        findViewById(R.id.hard_button).setOnClickListener(view -> launch(Difficulty.HARD));
     }
+
+    private void launch(Difficulty difficulty) {
+        if (launching) return;
+        launching = true;
+        startActivity(new Intent(this, GameActivity.class)
+                .putExtra(GameActivity.EXTRA_DIFFICULTY, difficulty.name()));
+    }
+
+    @Override protected void onResume() { super.onResume(); launching = false; }
 }
