@@ -8,17 +8,20 @@ import android.graphics.RectF;
 import android.os.Handler;
 import edu.hitsz.aircraft.BossEnemy;
 import edu.hitsz.basic.AbstractFlyingObject;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /** Shared renderer and round controller. The worker alone mutates GameWorld. */
 public abstract class GameScene extends BaseGame {
-    public static final int MSG_GAME_OVER = 1;
+    public static final int MSG_ROUND_UPDATE = 1;
     private final Difficulty difficulty;
     private final Handler resultHandler;
     private final AtomicBoolean restartRequested = new AtomicBoolean();
     private GameWorld world;
-    private boolean resultSent;
+    private int round;
+    private volatile RoundUpdate roundState = new RoundUpdate(0, 0, false, false, List.of());
     private final Paint text = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint effect = new Paint(Paint.ANTI_ALIAS_FLAG);
     private volatile Snapshot snapshot = new Snapshot(300, 817, 300, 0, 0, 0, 0, false);
@@ -34,15 +37,31 @@ public abstract class GameScene extends BaseGame {
     @Override protected void onTick(TouchState input, Viewport viewport) {
         if (restartRequested.getAndSet(false) && world.isGameOver()) {
             world = new GameWorld(difficulty);
-            resultSent = false;
+            round++;
             input = TouchState.NONE;
         }
         world.tick(input, viewport);
         snapshot = new Snapshot(world.hero.getLocationX(), world.hero.getLocationY(), world.hero.getHp(),
                 world.score(), world.ticks(), world.enemies().size(), world.heroBullets().size(), world.isGameOver());
-        if (world.isGameOver() && !resultSent) {
-            resultSent = true;
-            resultHandler.obtainMessage(MSG_GAME_OVER, world.score(), 0).sendToTarget();
+        List<GameEvent> events = world.drainEvents();
+        RoundUpdate previous = roundState;
+        boolean boss = world.isBossActive(), over = world.isGameOver();
+        if (round != previous.round || boss != previous.boss || over != previous.gameOver || !events.isEmpty()) {
+            RoundUpdate update = new RoundUpdate(round, world.score(), boss, over, events);
+            roundState = update;
+            resultHandler.obtainMessage(MSG_ROUND_UPDATE, update).sendToTarget();
+        }
+    }
+
+    /** Immutable worker-to-main batch, also usable after the worker has been joined. */
+    public final RoundUpdate roundState() { return roundState; }
+    public static final class RoundUpdate {
+        public final int round, score;
+        public final boolean boss, gameOver;
+        public final List<GameEvent> events;
+        private RoundUpdate(int round, int score, boolean boss, boolean gameOver, List<GameEvent> events) {
+            this.round = round; this.score = score; this.boss = boss; this.gameOver = gameOver;
+            this.events = Collections.unmodifiableList(new ArrayList<>(events));
         }
     }
     @Override protected void onDrawWorld(Canvas canvas) {

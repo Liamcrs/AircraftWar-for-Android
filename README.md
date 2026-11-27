@@ -6,13 +6,17 @@
 
 ## 游戏功能
 
-- 默认进入简单模式，背景滚动，英雄机自动发射子弹。
+- 启动后进入主菜单，可选择简单、普通或困难模式；不同难度具有独立背景、敌机数量、生成与射击节奏。
+- 普通和困难模式随有效游戏时间逐步提升难度，达到分数阈值出现 Boss；困难模式的后续 Boss 生命值增加。
+- 主菜单的「音乐与音效」开关默认开启，选择自动保存，下次启动仍然有效；关闭时游戏音乐与音效均静音。
+- 背景滚动，英雄机自动发射子弹。
 - 按住英雄机拖动，机体保持在游戏区域内。
 - 普通、精英、精锐和王牌敌机，以及敌方子弹。
 - 碰撞检测、生命值、击毁计分和出界清理。
 - 回血、炸弹、散射增强、环射增强和冻结道具。
-- 原版红色HUD、结束画面和冰冻效果；结束后点击画面开始新一局。
-- 前后台切换、Surface重建与游戏线程启停管理。
+- 原版红色HUD、Boss生命条、结束画面和冰冻效果；游戏结束后通过弹窗选择重新开始当前难度或返回菜单。
+- 普通背景音乐循环播放，Boss 存活期间切换为 Boss 音乐；击中、拾取道具、炸弹及游戏结束具有原版音效。
+- 前后台切换、Surface重建、游戏线程启停及音频资源释放管理；后台暂停所有播放，恢复时仅继续当前局应播放的背景音乐。
 
 游戏使用600×900逻辑画布和40ms逻辑步长，画面等比适配不同屏幕。
 
@@ -62,7 +66,8 @@ Java源码位于 `app/src/main/java/edu/hitsz/`：
 
 | 包 | 职责 |
 | --- | --- |
-| application | Activity入口、SurfaceView循环、Canvas绘制、游戏世界、图片缓存与坐标变换 |
+| application | 菜单与游戏 Activity、难度配置、SurfaceView循环、Canvas绘制、游戏世界与事件、图片缓存和坐标变换 |
+| music | MediaPlayer 循环音乐与 SoundPool 短音效、主线程播放状态和资源生命周期 |
 | basic | 飞行物基础属性、移动和碰撞 |
 | aircraft | 英雄机与敌机继承体系 |
 | bullet | 双方子弹、伤害与出界处理 |
@@ -71,6 +76,6 @@ Java源码位于 `app/src/main/java/edu/hitsz/`：
 | prop | 道具效果与局内计时 |
 | observer | 敌机和子弹的效果通知接口 |
 
-图片位于 `app/src/main/res/drawable/`，窗口主题位于 `app/src/main/res/values/styles.xml`。
+图片位于 `app/src/main/res/drawable/`，原版 WAV 音频位于 `app/src/main/res/raw/`（打包时不压缩），窗口主题位于 `app/src/main/res/values/styles.xml`。
 
-界面入口为 `MainActivity`；`BaseGame` 管理Surface与游戏线程；`EasyGame`负责画面；`GameWorld`处理独立于Android的游戏逻辑。
+界面入口为 `MainActivity`，通过显式 Intent 将难度与音频设置传给 `GameActivity`；`BaseGame` 管理 Surface 与游戏线程，`GameScene` 共享绘制与局状态管理，`EasyGame`、`NormalGame`、`HardGame` 提供三种场景。`GameWorld` 处理独立于 Android 的游戏逻辑，并由游戏线程通过主线程 Handler 交付不可变事件批次。`GameAudioManager` 在主线程管理互斥背景音乐与音效，响应游戏结束、重新开始及 Activity 生命周期。

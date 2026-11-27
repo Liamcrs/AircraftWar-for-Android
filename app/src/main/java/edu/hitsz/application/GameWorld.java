@@ -17,6 +17,7 @@ public final class GameWorld {
     private final List<AbstractEnemy> enemies = new ArrayList<>();
     private final List<BaseBullet> heroBullets = new ArrayList<>(), enemyBullets = new ArrayList<>();
     private final List<AbstractProp> props = new ArrayList<>();
+    private final List<GameEvent> events = new ArrayList<>();
     private final Random random;
     private final Difficulty difficulty;
     private int scoreSinceLastBoss, bossSpawnCount;
@@ -47,6 +48,12 @@ public final class GameWorld {
     public List<BaseBullet> heroBullets() { return Collections.unmodifiableList(heroBullets); }
     public List<BaseBullet> enemyBullets() { return Collections.unmodifiableList(enemyBullets); }
     public List<AbstractProp> props() { return Collections.unmodifiableList(props); }
+    public List<GameEvent> drainEvents() {
+        if (events.isEmpty()) return Collections.emptyList();
+        List<GameEvent> batch = Collections.unmodifiableList(new ArrayList<>(events));
+        events.clear();
+        return batch;
+    }
 
     public void tick(TouchState input, Viewport viewport) {
         if (gameOver) return;
@@ -88,6 +95,7 @@ public final class GameWorld {
         backgroundOffset = (backgroundOffset + 2) % GameConfig.WINDOW_HEIGHT;
         ticks++;
         gameOver = hero.getHp() <= 0;
+        if (gameOver) events.add(GameEvent.GAME_OVER);
     }
 
     private AbstractEnemy createEnemy() {
@@ -140,6 +148,7 @@ public final class GameWorld {
             if (hero.notValid()) break;
             if (!bullet.notValid() && hero.crash(bullet)) {
                 hero.decreaseHp(bullet.getPower()); bullet.vanish();
+                events.add(GameEvent.BULLET_HIT);
             }
         }
         for (BaseBullet bullet : heroBullets) {
@@ -147,6 +156,7 @@ public final class GameWorld {
             for (AbstractEnemy enemy : enemies) {
                 if (!enemy.notValid() && enemy.crash(bullet)) {
                     enemy.decreaseHp(bullet.getPower()); bullet.vanish();
+                    events.add(GameEvent.BULLET_HIT);
                     if (enemy.notValid()) { awardKill(enemy); props.addAll(enemy.generateProps()); }
                     break; // A normal bullet can hit only one target.
                 }
@@ -167,7 +177,11 @@ public final class GameWorld {
                 for (AbstractEnemy enemy : enemies) if (!enemy.notValid()) alive.add(enemy);
                 prop.effect(hero, enemyBullets, enemies);
                 for (AbstractEnemy enemy : alive) if (enemy.notValid()) awardKill(enemy);
-            } else prop.effect(hero, enemyBullets, enemies);
+                events.add(GameEvent.BOMB_EXPLOSION);
+            } else {
+                prop.effect(hero, enemyBullets, enemies);
+                events.add(GameEvent.GET_SUPPLY);
+            }
             prop.vanish();
         }
     }

@@ -46,7 +46,7 @@ def build(test=False):
             '--java', output / 'generated', '--min-sdk-version', '30', '--target-sdk-version', '37',
             '--version-code', '1', '--version-name', '1.0', '-o', output / 'resources.apk']
     if not test:
-        link.extend([output / 'compiled.zip'])
+        link.extend(['-0', 'wav', output / 'compiled.zip'])
     run(link)
     java_sources.extend((output / 'generated').rglob('*.java'))
     run([JDK / 'bin/javac', '--release', '11', '-encoding', 'UTF-8', '-classpath', classpath,
