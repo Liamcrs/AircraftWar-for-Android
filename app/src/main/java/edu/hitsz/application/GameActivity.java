@@ -12,8 +12,10 @@ import edu.hitsz.aircraftwar.R;
 /** Owns scene lifecycle and presents game results on the main thread. */
 public final class GameActivity extends Activity {
     public static final String EXTRA_DIFFICULTY = "difficulty";
+    public static final String EXTRA_SOUND_ENABLED = "sound_enabled";
     private GameScene game;
     private Difficulty difficulty;
+    private boolean soundEnabled;
     private boolean resumed;
     private Integer finalScore;
     private AlertDialog resultDialog;
@@ -27,6 +29,8 @@ public final class GameActivity extends Activity {
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         difficulty = Difficulty.fromName(getIntent().getStringExtra(EXTRA_DIFFICULTY));
+        soundEnabled = getIntent().getBooleanExtra(EXTRA_SOUND_ENABLED,
+                new GameSettings(this).isSoundEnabled());
         switch (difficulty) {
             case NORMAL: game = new NormalGame(this, resultHandler); break;
             case HARD: game = new HardGame(this, resultHandler); break;
@@ -78,4 +82,5 @@ public final class GameActivity extends Activity {
     }
     public GameScene gameView() { return game; }
     public Difficulty difficulty() { return difficulty; }
+    public boolean isSoundEnabled() { return soundEnabled; }
 }

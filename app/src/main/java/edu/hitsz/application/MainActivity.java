@@ -5,11 +5,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.WindowInsets;
 import android.view.View;
+import android.widget.Switch;
 import edu.hitsz.aircraftwar.R;
 
 /** Native difficulty-selection menu. */
 public final class MainActivity extends Activity {
     private boolean launching;
+    private GameSettings settings;
+    private Switch soundSwitch;
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         setContentView(R.layout.activity_main);
@@ -21,6 +24,11 @@ public final class MainActivity extends Activity {
         });
         root.requestApplyInsets();
 
+        settings = new GameSettings(this);
+        soundSwitch = findViewById(R.id.sound_switch);
+        soundSwitch.setChecked(settings.isSoundEnabled());
+        soundSwitch.setOnCheckedChangeListener((button, enabled) -> settings.setSoundEnabled(enabled));
+
         findViewById(R.id.easy_button).setOnClickListener(view -> launch(Difficulty.EASY));
         findViewById(R.id.normal_button).setOnClickListener(view -> launch(Difficulty.NORMAL));
         findViewById(R.id.hard_button).setOnClickListener(view -> launch(Difficulty.HARD));
@@ -30,8 +38,13 @@ public final class MainActivity extends Activity {
         if (launching) return;
         launching = true;
         startActivity(new Intent(this, GameActivity.class)
-                .putExtra(GameActivity.EXTRA_DIFFICULTY, difficulty.name()));
+                .putExtra(GameActivity.EXTRA_DIFFICULTY, difficulty.name())
+                .putExtra(GameActivity.EXTRA_SOUND_ENABLED, soundSwitch.isChecked()));
     }
 
-    @Override protected void onResume() { super.onResume(); launching = false; }
+    @Override protected void onResume() {
+        super.onResume();
+        launching = false;
+        soundSwitch.setChecked(settings.isSoundEnabled());
+    }
 }
