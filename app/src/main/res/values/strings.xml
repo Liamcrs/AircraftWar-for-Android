@@ -16,4 +16,11 @@
     <string name="rank_name">姓名</string>
     <string name="rank_score">分数</string>
     <string name="rank_empty">暂无成绩，完成一局游戏后记录你的成绩吧</string>
+    <string name="rank_loading">正在读取成绩…</string>
+    <string name="rank_load_error">成绩读取失败，点击此处重试</string>
+    <string name="rank_save">保存并查看排行榜</string>
+    <string name="rank_saving">正在保存…</string>
+    <string name="rank_save_error">成绩保存失败，请重试</string>
+    <string name="rank_name_hint">请输入姓名（最多24个字符）</string>
+    <string name="rank_name_required">请输入姓名</string>
 </resources>

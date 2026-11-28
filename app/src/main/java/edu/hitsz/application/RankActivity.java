@@ -5,12 +5,16 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.WindowInsets;
 import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 import edu.hitsz.aircraftwar.R;
 import edu.hitsz.rank.RankAdapter;
+import edu.hitsz.rank.RankRepository;
 
 /** Controller for the leaderboard page. */
 public final class RankActivity extends Activity {
     private RankAdapter adapter;
+    private RankRepository repository;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -24,8 +28,30 @@ public final class RankActivity extends Activity {
         root.requestApplyInsets();
         ListView list = findViewById(R.id.rank_list);
         adapter = new RankAdapter(this);
+        repository = new RankRepository(this);
         list.setAdapter(adapter);
         list.setEmptyView(findViewById(R.id.rank_empty));
         findViewById(R.id.rank_back).setOnClickListener(view -> finish());
+    }
+
+    @Override protected void onResume() {
+        super.onResume();
+        loadRecords();
+    }
+
+    private void loadRecords() {
+        TextView empty = findViewById(R.id.rank_empty);
+        empty.setText(R.string.rank_loading);
+        repository.load(records -> {
+            if (isFinishing() || isDestroyed()) return;
+            empty.setText(R.string.rank_empty);
+            empty.setOnClickListener(null);
+            adapter.submitList(records);
+        }, failure -> {
+            if (isFinishing() || isDestroyed()) return;
+            empty.setText(R.string.rank_load_error);
+            empty.setOnClickListener(view -> loadRecords());
+            Toast.makeText(this, R.string.rank_load_error, Toast.LENGTH_LONG).show();
+        });
     }
 }

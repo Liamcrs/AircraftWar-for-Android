@@ -13,11 +13,16 @@ import java.util.List;
 /** Reuses row views; storage will be supplied by the page controller. */
 public final class RankAdapter extends BaseAdapter {
     private final LayoutInflater inflater;
-    private final List<String[]> rows = new ArrayList<>();
+    private final List<RankRecord> rows = new ArrayList<>();
 
     public RankAdapter(Context context) { inflater = LayoutInflater.from(context); }
     @Override public int getCount() { return rows.size(); }
-    @Override public String[] getItem(int position) { return rows.get(position); }
+    public void submitList(List<RankRecord> records) {
+        rows.clear();
+        rows.addAll(records);
+        notifyDataSetChanged();
+    }
+    @Override public RankRecord getItem(int position) { return rows.get(position); }
     @Override public long getItemId(int position) { return position; }
 
     @Override public View getView(int position, View convertView, ViewGroup parent) {
@@ -27,10 +32,10 @@ public final class RankAdapter extends BaseAdapter {
             holder = new ViewHolder(convertView);
             convertView.setTag(holder);
         } else holder = (ViewHolder) convertView.getTag();
-        String[] row = getItem(position);
+        RankRecord row = getItem(position);
         holder.number.setText(String.valueOf(position + 1));
-        holder.name.setText(row[0]);
-        holder.score.setText(row[1]);
+        holder.name.setText(row.name);
+        holder.score.setText(String.valueOf(row.score));
         convertView.setBackgroundColor(position == 0 ? 0xfffff1c9 : 0xfff5f7fb);
         return convertView;
     }
