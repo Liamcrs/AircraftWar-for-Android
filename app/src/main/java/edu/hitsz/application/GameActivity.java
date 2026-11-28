@@ -34,7 +34,7 @@ public final class GameActivity extends Activity {
     private EditText nameInput;
     private String recordId, pendingName = "";
     private long finishedAt;
-    private boolean saving, restoredResult;
+    private boolean saving, restoredResult, scoreSaved, openingRanks;
     private RankRepository ranks;
     private final Handler resultHandler = new Handler(Looper.getMainLooper(), message -> {
         if (message.what != GameScene.MSG_ROUND_UPDATE) return false;
@@ -51,6 +51,7 @@ public final class GameActivity extends Activity {
             recordId = state.getString("record_id");
             finishedAt = state.getLong("finished_at");
             pendingName = state.getString("player_name", "");
+            scoreSaved = state.getBoolean("score_saved");
             restoredResult = true;
         }
         difficulty = Difficulty.fromName(getIntent().getStringExtra(EXTRA_DIFFICULTY));
@@ -97,10 +98,14 @@ public final class GameActivity extends Activity {
         nameInput.setContentDescription(getString(R.string.rank_name));
         nameInput.setFilters(new InputFilter[] {new InputFilter.LengthFilter(RankRecord.MAX_NAME_LENGTH)});
         nameInput.setText(pendingName);
+        FrameLayout inputContainer = new FrameLayout(this);
+        int padding = Math.round(24 * getResources().getDisplayMetrics().density);
+        inputContainer.setPadding(padding, 0, padding, 0);
+        inputContainer.addView(nameInput, new FrameLayout.LayoutParams(-1, -2));
         resultDialog = new AlertDialog.Builder(this)
                 .setTitle(R.string.game_over)
                 .setMessage(getString(R.string.result_score, finalScore))
-                .setView(nameInput)
+                .setView(inputContainer)
                 .setPositiveButton(R.string.rank_save, null)
                 .setNeutralButton(R.string.play_again, (dialog, which) -> {
                     if (restoredResult) {
@@ -130,14 +135,21 @@ public final class GameActivity extends Activity {
         RankRecord record = new RankRecord(recordId, name, finalScore, finishedAt);
         ranks.save(record, () -> {
             if (isFinishing() || isDestroyed()) return;
-            startActivity(new Intent(this, RankActivity.class));
-            finish();
+            scoreSaved = true;
+            openRanksIfReady();
         }, failure -> {
             if (isFinishing() || isDestroyed()) return;
             saving = false;
             setResultButtonsEnabled(true);
             Toast.makeText(this, R.string.rank_save_error, Toast.LENGTH_LONG).show();
         });
+    }
+
+    private void openRanksIfReady() {
+        if (!resumed || !scoreSaved || openingRanks || isFinishing() || isDestroyed()) return;
+        openingRanks = true;
+        startActivity(new Intent(this, RankActivity.class));
+        finish();
     }
 
     private void setResultButtonsEnabled(boolean enabled) {
@@ -152,6 +164,7 @@ public final class GameActivity extends Activity {
             state.putInt("final_score", finalScore);
             state.putString("record_id", recordId);
             state.putLong("finished_at", finishedAt);
+            state.putBoolean("score_saved", scoreSaved);
             state.putString("player_name", nameInput == null ? pendingName : nameInput.getText().toString());
         }
         super.onSaveInstanceState(state);
@@ -160,6 +173,7 @@ public final class GameActivity extends Activity {
     @Override public void onResume() {
         super.onResume();
         resumed = true;
+        if (scoreSaved) { openRanksIfReady(); return; }
         audio.setForeground(true);
         if (!restoredResult) game.resumeGame();
         showResultIfReady();

@@ -30,7 +30,7 @@ public final class RankRepository {
         submit(dao -> { dao.delete(id); return dao.findAll(); }, success, failure);
     }
 
-    private RankDao openDao() { return new FileRankDao(context); }
+    private RankDao openDao() { return new SQLiteRankDao(context); }
 
     private <T> void submit(Function<RankDao, T> operation, Consumer<T> success,
                             Consumer<RuntimeException> failure) {
