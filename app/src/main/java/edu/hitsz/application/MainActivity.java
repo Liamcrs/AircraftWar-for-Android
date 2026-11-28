@@ -32,6 +32,11 @@ public final class MainActivity extends Activity {
         findViewById(R.id.easy_button).setOnClickListener(view -> launch(Difficulty.EASY));
         findViewById(R.id.normal_button).setOnClickListener(view -> launch(Difficulty.NORMAL));
         findViewById(R.id.hard_button).setOnClickListener(view -> launch(Difficulty.HARD));
+        findViewById(R.id.rank_button).setOnClickListener(view -> {
+            if (launching) return;
+            launching = true;
+            startActivity(new Intent(this, RankActivity.class));
+        });
     }
 
     private void launch(Difficulty difficulty) {

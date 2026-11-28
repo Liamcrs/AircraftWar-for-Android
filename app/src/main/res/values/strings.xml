@@ -11,4 +11,22 @@
     <string name="result_score">最终得分：%1$d</string>
     <string name="play_again">重新开始</string>
     <string name="return_menu">返回菜单</string>
+    <string name="rank_title">排行榜</string>
+    <string name="rank_number">排名</string>
+    <string name="rank_name">姓名</string>
+    <string name="rank_score">分数</string>
+    <string name="rank_empty">暂无成绩，完成一局游戏后记录你的成绩吧</string>
+    <string name="rank_loading">正在读取成绩…</string>
+    <string name="rank_load_error">成绩读取失败，点击此处重试</string>
+    <string name="rank_save">保存并查看排行榜</string>
+    <string name="rank_saving">正在保存…</string>
+    <string name="rank_save_error">成绩保存失败，请重试</string>
+    <string name="rank_name_hint">请输入姓名（最多24个字符）</string>
+    <string name="rank_name_required">请输入姓名</string>
+    <string name="rank_action">操作</string>
+    <string name="rank_delete">删除</string>
+    <string name="rank_delete_title">删除成绩</string>
+    <string name="rank_delete_message">确定删除「%1$s」的 %2$d 分记录吗？</string>
+    <string name="rank_delete_description">删除%1$s的%2$d分记录</string>
+    <string name="rank_delete_error">删除失败，请重试</string>
 </resources>

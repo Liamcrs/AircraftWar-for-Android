@@ -15,6 +15,8 @@
 - 碰撞检测、生命值、击毁计分和出界清理。
 - 回血、炸弹、散射增强、环射增强和冻结道具。
 - 原版红色HUD、Boss生命条、结束画面和冰冻效果；游戏结束后通过弹窗选择重新开始当前难度或返回菜单。
+- 主菜单可打开排行榜；游戏结束后输入姓名保存本局成绩，按分数降序排列，第一名高亮显示。支持删除单条记录并重新排名。
+- 排行榜使用 ListView、自定义 BaseAdapter 和 ViewHolder，通过 DAO 隔离界面与存储。最终使用应用私有 SQLite 数据库 `rank.db`，重启后保留记录；从文件存储版本升级时自动迁移 `rank.json`，迁移标记与导入记录在同一事务内提交。
 - 普通背景音乐循环播放，Boss 存活期间切换为 Boss 音乐；击中、拾取道具、炸弹及游戏结束具有原版音效。
 - 前后台切换、Surface重建、游戏线程启停及音频资源释放管理；后台暂停所有播放，恢复时仅继续当前局应播放的背景音乐。
 
@@ -75,7 +77,10 @@ Java源码位于 `app/src/main/java/edu/hitsz/`：
 | strategy | 直射、散射和环射策略 |
 | prop | 道具效果与局内计时 |
 | observer | 敌机和子弹的效果通知接口 |
+| rank | 成绩模型、排行榜 Adapter、DAO 接口、文件与 SQLite 存储实现、异步存储协调 |
 
 图片位于 `app/src/main/res/drawable/`，原版 WAV 音频位于 `app/src/main/res/raw/`（打包时不压缩），窗口主题位于 `app/src/main/res/values/styles.xml`。
 
 界面入口为 `MainActivity`，通过显式 Intent 将难度与音频设置传给 `GameActivity`；`BaseGame` 管理 Surface 与游戏线程，`GameScene` 共享绘制与局状态管理，`EasyGame`、`NormalGame`、`HardGame` 提供三种场景。`GameWorld` 处理独立于 Android 的游戏逻辑，并由游戏线程通过主线程 Handler 交付不可变事件批次。`GameAudioManager` 在主线程管理互斥背景音乐与音效，响应游戏结束、重新开始及 Activity 生命周期。
+
+实验四按四次提交实现：排行榜页面 → 展示数据及文件持久化 → 删除记录 → SQLite 存储。`RankActivity` 和 `RankAdapter` 不直接访问文件或数据库，`RankRepository` 在单独线程中通过 `RankDao` 访问存储，再将结果交回主线程。成绩以每局唯一 ID 去重，同名玩家的多局记录独立保存；同分时按记录时间、ID 排序。

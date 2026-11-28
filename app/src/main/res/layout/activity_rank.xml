@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rank_root" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:orientation="vertical" android:background="#FFFFFF">
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:padding="20dp" android:text="@string/rank_title" android:textSize="26sp"
+        android:textStyle="bold" android:gravity="center" android:textColor="#FFFFFF" android:background="#204F78" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:padding="16dp" android:background="#DCE4F2" android:orientation="horizontal">
+        <TextView android:layout_width="56dp" android:layout_height="wrap_content" android:text="@string/rank_number" />
+        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/rank_name" />
+        <TextView android:layout_width="88dp" android:layout_height="wrap_content" android:text="@string/rank_score" android:gravity="end" />
+        <TextView android:layout_width="56dp" android:layout_height="wrap_content" android:layout_marginStart="8dp"
+            android:text="@string/rank_action" android:gravity="center" />
+    </LinearLayout>
+    <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+        <ListView android:id="@+id/rank_list" android:layout_width="match_parent" android:layout_height="match_parent" />
+        <TextView android:id="@+id/rank_empty" android:layout_width="match_parent" android:layout_height="match_parent"
+            android:padding="24dp" android:gravity="center" android:text="@string/rank_empty" android:textSize="18sp" />
+    </FrameLayout>
+    <Button android:id="@+id/rank_back" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:minHeight="48dp" android:text="@string/return_menu" />
+</LinearLayout>
