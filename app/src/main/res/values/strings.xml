@@ -11,4 +11,9 @@
     <string name="result_score">最终得分：%1$d</string>
     <string name="play_again">重新开始</string>
     <string name="return_menu">返回菜单</string>
+    <string name="rank_title">排行榜</string>
+    <string name="rank_number">排名</string>
+    <string name="rank_name">姓名</string>
+    <string name="rank_score">分数</string>
+    <string name="rank_empty">暂无成绩，完成一局游戏后记录你的成绩吧</string>
 </resources>
