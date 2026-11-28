@@ -26,6 +26,10 @@ public final class RankRepository {
         submit(dao -> { dao.insert(record); return true; }, ignored -> success.run(), failure);
     }
 
+    public void delete(String id, Consumer<List<RankRecord>> success, Consumer<RuntimeException> failure) {
+        submit(dao -> { dao.delete(id); return dao.findAll(); }, success, failure);
+    }
+
     private RankDao openDao() { return new FileRankDao(context); }
 
     private <T> void submit(Function<RankDao, T> operation, Consumer<T> success,

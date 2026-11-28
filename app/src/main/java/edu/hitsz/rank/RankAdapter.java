@@ -6,16 +6,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
+import android.widget.Button;
 import edu.hitsz.aircraftwar.R;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /** Reuses row views; storage will be supplied by the page controller. */
 public final class RankAdapter extends BaseAdapter {
     private final LayoutInflater inflater;
     private final List<RankRecord> rows = new ArrayList<>();
+    private Consumer<RankRecord> deleteListener = record -> { };
 
     public RankAdapter(Context context) { inflater = LayoutInflater.from(context); }
+    public void setOnDeleteListener(Consumer<RankRecord> listener) { deleteListener = listener; }
     @Override public int getCount() { return rows.size(); }
     public void submitList(List<RankRecord> records) {
         rows.clear();
@@ -36,16 +40,20 @@ public final class RankAdapter extends BaseAdapter {
         holder.number.setText(String.valueOf(position + 1));
         holder.name.setText(row.name);
         holder.score.setText(String.valueOf(row.score));
+        holder.delete.setContentDescription(convertView.getContext().getString(R.string.rank_delete_description, row.name, row.score));
+        holder.delete.setOnClickListener(view -> deleteListener.accept(row));
         convertView.setBackgroundColor(position == 0 ? 0xfffff1c9 : 0xfff5f7fb);
         return convertView;
     }
 
     private static final class ViewHolder {
         final TextView number, name, score;
+        final Button delete;
         ViewHolder(View view) {
             number = view.findViewById(R.id.item_rank_number);
             name = view.findViewById(R.id.item_rank_name);
             score = view.findViewById(R.id.item_rank_score);
+            delete = view.findViewById(R.id.item_rank_delete);
         }
     }
 }

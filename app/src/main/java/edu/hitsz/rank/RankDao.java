@@ -7,5 +7,6 @@ public interface RankDao extends AutoCloseable {
     List<RankRecord> findAll();
     /** Retrying an already saved round ID must not add a second row. */
     void insert(RankRecord record);
+    void delete(String id);
     @Override default void close() { }
 }

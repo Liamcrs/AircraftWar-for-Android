@@ -43,6 +43,11 @@ public final class FileRankDao implements RankDao {
         write(records);
     }
 
+    @Override public void delete(String id) {
+        List<RankRecord> records = findAll();
+        if (records.removeIf(record -> record.id.equals(id))) write(records);
+    }
+
     private void write(List<RankRecord> records) {
         FileOutputStream stream = null;
         try {

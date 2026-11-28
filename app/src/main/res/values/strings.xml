@@ -23,4 +23,10 @@
     <string name="rank_save_error">成绩保存失败，请重试</string>
     <string name="rank_name_hint">请输入姓名（最多24个字符）</string>
     <string name="rank_name_required">请输入姓名</string>
+    <string name="rank_action">操作</string>
+    <string name="rank_delete">删除</string>
+    <string name="rank_delete_title">删除成绩</string>
+    <string name="rank_delete_message">确定删除「%1$s」的 %2$d 分记录吗？</string>
+    <string name="rank_delete_description">删除%1$s的%2$d分记录</string>
+    <string name="rank_delete_error">删除失败，请重试</string>
 </resources>

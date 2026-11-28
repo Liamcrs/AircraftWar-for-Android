@@ -10,6 +10,8 @@
         <TextView android:layout_width="56dp" android:layout_height="wrap_content" android:text="@string/rank_number" />
         <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/rank_name" />
         <TextView android:layout_width="88dp" android:layout_height="wrap_content" android:text="@string/rank_score" android:gravity="end" />
+        <TextView android:layout_width="56dp" android:layout_height="wrap_content" android:layout_marginStart="8dp"
+            android:text="@string/rank_action" android:gravity="center" />
     </LinearLayout>
     <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
         <ListView android:id="@+id/rank_list" android:layout_width="match_parent" android:layout_height="match_parent" />
